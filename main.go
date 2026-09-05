@@ -39,4 +39,22 @@ func main() {
 	if err := webhookDemo.Run(); err != nil {
 		panic(err)
 	}
+
+	shellDemo := &engine.Rule{
+		Name:    "shell-demo",
+		Trigger: &engine.IntervalTrigger{Interval: 1 * time.Second},
+		Action:  &engine.ShellAction{Command: "echo hello from shell action"},
+	}
+	if err := shellDemo.Run(); err != nil {
+		panic(err)
+	}
+
+	httpDemo := &engine.Rule{
+		Name:    "http-demo",
+		Trigger: &engine.IntervalTrigger{Interval: 1 * time.Second},
+		Action:  &engine.HTTPAction{URL: "https://api.github.com"},
+	}
+	if err := httpDemo.Run(); err != nil {
+		panic(err)
+	}
 }
