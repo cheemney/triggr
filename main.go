@@ -29,4 +29,14 @@ func main() {
 	if err := cronDemo.Run(); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("waiting for a POST to http://localhost:8080/fire ...")
+	webhookDemo := &engine.Rule{
+		Name:    "webhook-demo",
+		Trigger: &engine.WebhookTrigger{Addr: ":8080", Path: "/fire"},
+		Action:  &engine.LogAction{Message: "webhook: fired"},
+	}
+	if err := webhookDemo.Run(); err != nil {
+		panic(err)
+	}
 }
