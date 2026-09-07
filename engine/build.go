@@ -33,6 +33,15 @@ func buildTrigger(spec config.Spec) (Trigger, error) {
 			return nil, fmt.Errorf("interval trigger: %w", err)
 		}
 		return &IntervalTrigger{Interval: d}, nil
+	case "github_release":
+		if len(spec.Args) != 3 {
+			return nil, fmt.Errorf("github_release trigger: expected 3 args (owner, repo, interval), got %d", len(spec.Args))
+		}
+		d, err := time.ParseDuration(spec.Args[2])
+		if err != nil {
+			return nil, fmt.Errorf("github_release trigger: %w", err)
+		}
+		return &GitHubReleaseTrigger{Owner: spec.Args[0], Repo: spec.Args[1], Interval: d}, nil
 	default:
 		return nil, fmt.Errorf("unknown trigger kind %q", spec.Kind)
 	}
@@ -50,6 +59,11 @@ func buildAction(spec config.Spec) (Action, error) {
 			return nil, fmt.Errorf("log action: expected 1 arg, got %d", len(spec.Args))
 		}
 		return &LogAction{Message: spec.Args[0]}, nil
+	case "discord_webhook":
+		if len(spec.Args) != 2 {
+			return nil, fmt.Errorf("discord_webhook action: expected 2 args (url, message), got %d", len(spec.Args))
+		}
+		return &DiscordWebhookAction{WebhookURL: spec.Args[0], Message: spec.Args[1]}, nil
 	default:
 		return nil, fmt.Errorf("unknown action kind %q", spec.Kind)
 	}
