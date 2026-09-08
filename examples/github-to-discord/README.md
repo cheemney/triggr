@@ -19,9 +19,3 @@ From the repo root:
 ```
 go run ./examples/github-to-discord
 ```
-
-## Known issue
-
-Every poll currently re-fires on the same release — there's no
-de-duplication yet, so you'll get repeated Discord messages rather
-than one per new release. Being tracked and fixed next.

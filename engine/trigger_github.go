@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/cheemney/triggr/store"
 )
 
 // GitHubReleaseTrigger polls a repo's latest release endpoint and
-// fires whenever it gets a response with a tag. No de-duplication —
-// it'll fire again on the same release next poll. Known gap, tracked
-// separately rather than patched in here.
+// fires only when the tag differs from the last one it saw, tracked
+// through Store so it survives restarts.
 type GitHubReleaseTrigger struct {
 	Owner    string
 	Repo     string
 	Interval time.Duration
+	Store    *store.Store
 }
 
 type githubRelease struct {
@@ -23,6 +25,7 @@ type githubRelease struct {
 
 func (t *GitHubReleaseTrigger) Watch() error {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", t.Owner, t.Repo)
+	key := fmt.Sprintf("github_release:%s/%s", t.Owner, t.Repo)
 
 	for {
 		resp, err := http.Get(url)
@@ -38,7 +41,12 @@ func (t *GitHubReleaseTrigger) Watch() error {
 		}
 
 		if release.TagName != "" {
-			return nil
+			if last, seen := t.Store.Get(key); !seen || last != release.TagName {
+				if err := t.Store.Set(key, release.TagName); err != nil {
+					return err
+				}
+				return nil
+			}
 		}
 
 		time.Sleep(t.Interval)

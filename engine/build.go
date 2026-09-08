@@ -5,7 +5,12 @@ import (
 	"time"
 
 	"github.com/cheemney/triggr/config"
+	"github.com/cheemney/triggr/store"
 )
+
+// stateStore backs any trigger that needs to remember something
+// between polls (currently just GitHubReleaseTrigger).
+var stateStore = store.New(".triggr.state")
 
 // BuildRule turns a parsed config.RuleDecl into a runnable Rule.
 // Only "interval" triggers and "shell"/"log" actions are wired up so
@@ -41,7 +46,7 @@ func buildTrigger(spec config.Spec) (Trigger, error) {
 		if err != nil {
 			return nil, fmt.Errorf("github_release trigger: %w", err)
 		}
-		return &GitHubReleaseTrigger{Owner: spec.Args[0], Repo: spec.Args[1], Interval: d}, nil
+		return &GitHubReleaseTrigger{Owner: spec.Args[0], Repo: spec.Args[1], Interval: d, Store: stateStore}, nil
 	default:
 		return nil, fmt.Errorf("unknown trigger kind %q", spec.Kind)
 	}
